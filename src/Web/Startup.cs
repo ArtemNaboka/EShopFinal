@@ -13,13 +13,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
+using Microsoft.eShopWeb.ApplicationCore.Services;
 using Microsoft.eShopWeb.Infrastructure.Data;
 using Microsoft.eShopWeb.Infrastructure.Identity;
 using Microsoft.eShopWeb.Web.Configuration;
+using Microsoft.eShopWeb.Web.Extensions;
+using Microsoft.eShopWeb.Web.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -97,7 +101,6 @@ namespace Microsoft.eShopWeb.Web
         {
             services.AddCookieSettings();
 
-
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -144,7 +147,15 @@ namespace Microsoft.eShopWeb.Web
                 config.Path = "/allservices";
             });
 
-            
+            services.Configure<GeoSettings>(Configuration.GetSection(nameof(GeoSettings)));
+            services.Configure<DeliveryReservingSettings>(Configuration.GetSection(nameof(DeliveryReservingSettings)));
+
+            services.AddHttpClient<IDeliveryReservingService, DeliveryReservingService>((sp, client) =>
+            {
+                var settings = sp.GetRequiredService<IOptions<DeliveryReservingSettings>>().Value;
+                client.ConfigureForHttpFunction(settings);
+            });
+
             var baseUrlConfig = new BaseUrlConfiguration();
             Configuration.Bind(BaseUrlConfiguration.CONFIG_NAME, baseUrlConfig);
             services.AddScoped<BaseUrlConfiguration>(sp => baseUrlConfig);
