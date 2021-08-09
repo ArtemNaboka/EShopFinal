@@ -10,15 +10,22 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.ServiceBus;
 using OrdersProcessor.Contracts.Models;
+using Microsoft.Extensions.Options;
+using OrdersProcessor.Configuration;
+using System;
 
 namespace OrdersProcessor.Functions
 {
     public class OrderItemsReserver
     {
+        private readonly IOptionsSnapshot<ExecutionSettings> _executionOptions;
         private readonly ILogger _logger;
 
-        public OrderItemsReserver(ILogger<OrderItemsReserver> logger)
+        public OrderItemsReserver(
+            IOptionsSnapshot<ExecutionSettings> executionOptions,
+            ILogger<OrderItemsReserver> logger)
         {
+            _executionOptions = executionOptions;
             _logger = logger;
         }
 
@@ -48,6 +55,12 @@ namespace OrdersProcessor.Functions
             [Blob("%ReserverContainer%", Connection = "StorageConnection")] CloudBlobContainer blobContainer)
         {
             _logger.LogInformation("OrderItemsReserver triggered!");
+
+            if (_executionOptions.Value.ThrowErrorOnItemsReserve)
+            {
+                throw new InvalidOperationException(
+                    $"An exception was intentionally thrown for items reserving. Error message id: {message.MessageId}");
+            }
 
             var orderJson = Encoding.UTF8.GetString(message.Body);
             var order = JsonConvert.DeserializeObject<ReservingOrderDto>(orderJson);

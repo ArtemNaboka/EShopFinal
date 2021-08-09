@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 using Microsoft.eShopWeb.ApplicationCore.Services;
@@ -149,11 +150,18 @@ namespace Microsoft.eShopWeb.Web
 
             services.Configure<GeoSettings>(Configuration.GetSection(nameof(GeoSettings)));
             services.Configure<DeliveryReservingSettings>(Configuration.GetSection(nameof(DeliveryReservingSettings)));
+            services.Configure<ServiceBusConfiguration>(Configuration.GetSection(nameof(ServiceBusConfiguration)));
 
             services.AddHttpClient<IDeliveryReservingService, DeliveryReservingService>((sp, client) =>
             {
                 var settings = sp.GetRequiredService<IOptions<DeliveryReservingSettings>>().Value;
                 client.ConfigureForHttpFunction(settings);
+            });
+
+            services.AddSingleton<ITopicClient>(sp =>
+            {
+                var config = sp.GetRequiredService<IOptions<ServiceBusConfiguration>>().Value;
+                return new TopicClient(config.ConnectionString, config.TopicName);
             });
 
             var baseUrlConfig = new BaseUrlConfiguration();

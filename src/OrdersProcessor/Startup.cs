@@ -12,6 +12,7 @@ namespace OrdersProcessor
     public class Startup : FunctionsStartup
     {
         private const string CosmosDbSection = "CosmosDB";
+        private const string ExecutionSection = "ExecutionSettings";
 
         public override void Configure(IFunctionsHostBuilder builder)
         {
@@ -25,6 +26,7 @@ namespace OrdersProcessor
                 cosmosSection.Bind(cosmosSettings);
 
                 builder.Services.Configure<CosmosDbSettings>(cosmosSection);
+                builder.Services.Configure<ExecutionSettings>(configuration.GetSection(ExecutionSection));
 
                 builder.Services.AddSingleton(_ => new CosmosClient(cosmosSettings.Uri, cosmosSettings.Key));
             }
