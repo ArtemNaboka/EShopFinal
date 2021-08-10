@@ -51,7 +51,7 @@ namespace Microsoft.eShopWeb.Web
             ConfigureInMemoryDatabases(services);
 
             // use real database
-            //ConfigureProductionServices(services);
+            // ConfigureProductionServices(services);
         }
 
         public void ConfigureDockerServices(IServiceCollection services)
@@ -157,6 +157,8 @@ namespace Microsoft.eShopWeb.Web
                 var settings = sp.GetRequiredService<IOptions<DeliveryReservingSettings>>().Value;
                 client.ConfigureForHttpFunction(settings);
             });
+
+            services.AddScoped<IOrderReservingService, OrderReservingService>();
 
             services.AddSingleton<ITopicClient>(sp =>
             {

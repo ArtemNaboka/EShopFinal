@@ -43,7 +43,7 @@ namespace OrdersProcessor.Functions
                 var orderEntity = GetDeliveryOrderEntity(order);
 
                 var container = await GetContainerAsync();
-                var response = await container.CreateItemAsync(order);
+                var response = await container.CreateItemAsync(orderEntity);
 
                 return new OkObjectResult($"Delivery Reserved! Cosmos Response: {response.StatusCode}");
             }
@@ -66,7 +66,7 @@ namespace OrdersProcessor.Functions
 
             Database database = await _cosmosClient.CreateDatabaseIfNotExistsAsync(settings.DatabaseName);
 
-            return await database.CreateContainerIfNotExistsAsync(settings.ContainerName, $"/{nameof(DeliveryOrderDto.OrderId)}", settings.RequestUnits);
+            return await database.CreateContainerIfNotExistsAsync(settings.ContainerName, $"/{nameof(DeliveryOrderEntity.OrderId)}", settings.RequestUnits);
         }
     }
 }
